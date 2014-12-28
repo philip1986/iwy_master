@@ -42,7 +42,7 @@ The values of `red`, `green` and `blue` must be btween 0 and 255.*
 
 `setBrightness(value)`
 
-*Set the brightness of the light in both modes. The value must be between 0 and 100. *
+*Set the brightness of the light in both modes. The value must be between 0 and 100.*
 
 `setColorRed()`
 
@@ -54,4 +54,4 @@ The values of `red`, `green` and `blue` must be btween 0 and 255.*
 
 `setColorBlue()`
 
-*Switch the light into color mode and applies color blue().*
+*Switch the light into color mode and applies color blue.*
