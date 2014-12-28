@@ -8,7 +8,7 @@
 
 # Usage
 
-[Here](exampels/on_off.js) you can see a small example.
+[Here](examples/on_off.js) you can see a small example.
 
 ## Import and connect
 ```
