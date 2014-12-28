@@ -1,0 +1,22 @@
+{
+  "name": "iwy_master",
+  "version": "0.0.1",
+  "description": "Control IWY Master light via TCP scocket",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"TODO: provide some tests\" && exit 1"
+  },
+  "author": "Philip",
+  "license": "MIT",
+  "keywords": [
+    "iwy",
+    "light",
+    "tcp",
+    "home automation",
+    "smart home",
+    "led"
+  ],
+  "dependencies": {
+    "color": "^0.7.3"
+  }
+}
