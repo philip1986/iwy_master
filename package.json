@@ -1,27 +1,29 @@
 {
   "name": "iwy_master",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Control IWY Light Master via TCP scocket",
-  "author": "Philip",
-  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \\\"TODO: provide some tests\\\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/philip1986/iwy_master.git"
+  },
   "keywords": [
     "iwy",
     "light",
     "tcp",
-    "home automation",
-    "smart home",
+    "home",
+    "automation",
+    "smart",
+    "home",
     "led"
   ],
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"TODO: provide some tests\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/philip1986/iwy_master.git"
-  },
+  "author": "Philip Patzer <philip.patzer@gmail.com>",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/philip1986/iwy_master"
+    "url": "https://github.com/philip1986/iwy_master/issues"
   },
   "homepage": "https://github.com/philip1986/iwy_master",
   "dependencies": {
