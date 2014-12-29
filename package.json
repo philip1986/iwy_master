@@ -1,6 +1,6 @@
 {
   "name": "iwy_master",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Control IWY Light Master via TCP scocket",
   "author": "Philip",
   "license": "MIT",
