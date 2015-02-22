@@ -34,7 +34,7 @@ command(function(err, state) {...});
 The state object will look like:
 ```
     power: true|false,
-    mode: WHITE|COLOR,
+    mode: 'WHITE'|'COLOR',
     brightness: between 0 and 100,
     color: {
         r: between 0 and 255,
@@ -53,11 +53,11 @@ The state object will look like:
 
 `setWhite([callback])`
 
-*Switch the light into warm white mode.*
+*Switchs the light dievice into warm white mode.*
 
 `setColor(red, green, blue, [callback])`
 
-*Switch the light into color mode and applies the defined color.
+*Switchs the light dievice into color mode and applies the defined color.
 The parameter `red`, `green` and `blue` must be set and btween 0 and 255.*
 
 `setBrightness(value, [callback])`
