@@ -1,10 +1,10 @@
 {
   "name": "iwy_master",
   "version": "0.0.3",
-  "description": "Control IWY Light Master via TCP scocket",
+  "description": "Controls IWY Light Master via TCP scocket",
   "main": "index.js",
   "scripts": {
-    "test": "echo \\\"TODO: provide some tests\\\" && exit 1"
+    "test": "node_modules/.bin/mocha"
   },
   "repository": {
     "type": "git",
@@ -28,5 +28,10 @@
   "homepage": "https://github.com/philip1986/iwy_master",
   "dependencies": {
     "color": "^0.7.3"
+  },
+  "devDependencies": {
+    "mocha": "^2.1.0",
+    "should": "^5.0.1",
+    "sinon": "^1.12.2"
   }
 }
