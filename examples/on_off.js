@@ -1,16 +1,29 @@
+/*
+  This example let the light  bink red in an inverval of one second.
+  Note: It is possible to change to light color and brightness by another device or script.
+
+*/
+
 IwyMaster = require('../../iwy_master');
 
-iwy = new IwyMaster();
+light = new IwyMaster();
 
-// trurn on, switch the color to red
-// and switch off after 10 seconds
+// here you should set the network address of your iwy light
+HOST = '192.168.178.51'
 
-iwy.on('error', console.log)
+light.connect(HOST, function() {
+  light.switchOn();
+  light.setColor(255,0,0);
 
-iwy.connect('192.168.1.15', function() {
-  iwy.switchOn();
-  iwy.setColorRGB(0,255,0);
-  setTimeout(function() {
-    iwy.switchOff()
-  }, 10000);
-})
+  setInterval(function (){
+    light.getState(function(err, state){
+      if(state.power){
+        light.switchOff();
+      }
+      else {
+        light.switchOn();
+      }
+    });
+  }, 1000);
+
+});
