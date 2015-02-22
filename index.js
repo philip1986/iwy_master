@@ -130,7 +130,7 @@ IwyMaster.prototype.connect = function(host, port, callback) {
   });
 
   // only used to get the current state of the device
-  client.on('data', this._receiveState);
+  client.on('data', this._receiveState.bind(this));
 
   client.connect(port, host, function(err) {
     if(typeof callback === 'function') callback(err);
