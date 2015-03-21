@@ -67,7 +67,6 @@ IwyMaster.prototype._requestState = function(cb) {
 IwyMaster.prototype._send = function(msg, cb) {
   var self = this;
   var msg = new Buffer(msg);
-
   this._tcpClient.write(msg, function (err) {
     if (typeof cb === 'function') cb(err, self._getStateObj());
   });
@@ -142,7 +141,9 @@ IwyMaster.prototype.switchOn = function(callback) {
 
   this._requestState(function() {
     self._powerState = true;
-    self._send(ON_MSG, callback);
+    self._send(ON_MSG, function() {
+      self._send(self._lightMsg(), callback);
+    });
   });
 }
 
