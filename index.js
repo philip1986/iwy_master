@@ -13,7 +13,7 @@ var DEFAULT_PORT = 5577,
 
 var ON_VALUE = 0x23,
   OFF_VALUE = 0x24,
-  ON_MSG = [0xcc, ON_VALUE, 0x33],
+  ON_MSG = [0xcc,  ON_VALUE, 0x33],
   OFF_MSG = [0xcc, OFF_VALUE, 0x33],
   MODE = { WHITE: 0x0F, COLOR: 0xF0},
   STATE_REQUEST_MSG = [0xef, 0x01, 0x77];
@@ -22,13 +22,18 @@ var ON_VALUE = 0x23,
   constructor
 */
 
-function IwyMaster() {
+function IwyMaster(host, port) {
+  if (host === null || host === undefined) {
+   throw new Error('host address requiered');
+  }
+
+  this._host = host;
+  this._port = port || DEFAULT_PORT;
+
   this._powerState = null;
   this._mode = null;
   this._brightness = null;
   this._color = Color();
-
-  this._tcpClient = null;
 }
 
 /*
@@ -42,33 +47,72 @@ util.inherits(IwyMaster, EventEmitter);
 */
 
 IwyMaster.prototype._lightMsg = function() {
-  return [
+  return new Buffer([
     0x56,
     this._color.rgb().r,
     this._color.rgb().g,
     this._color.rgb().b,
-    Math.round(this._brightness * 2.55),
+    Math.round(this._brightness * 2.55, 0),
     MODE[this._mode],
     0xAA
-  ];
+  ]);
 }
 
-IwyMaster.prototype._requestState = function(cb) {
+IwyMaster.prototype._requestState = function(client, cb) {
   var msg = new Buffer(STATE_REQUEST_MSG);
-  this.once('stateUpdated', function() {
-    cb();
-  });
-  this._tcpClient.write(msg, function (err) {
-    // TODO: error handling
+
+  this.once('stateUpdated', cb);
+  this.once('connTimeout', cb);
+
+  client.write(msg, function (err) {
     if(err) cb(err);
   });
 }
 
-IwyMaster.prototype._send = function(msg, cb) {
+IwyMaster.prototype._send = function(overwriteFn, cb) {
   var self = this;
-  var msg = new Buffer(msg);
-  this._tcpClient.write(msg, function (err) {
-    if (typeof cb === 'function') cb(err, self._getStateObj());
+
+  var errorEmitter = function(err) {
+    if(!err) return;
+    self.emit('error', err);
+  }
+
+  var errorCb = cb || errorEmitter;
+
+  this.once('connTimeout', errorCb);
+
+  this._connect(function (err, client) {
+    if(err) return errorCb(err);
+
+    var currentPowerState = self._powerState;
+
+    self._requestState(client, function() {
+      overwriteFn();
+
+      var onOff = function (cb) {
+        if(currentPowerState !== self._powerState) {
+          var msg = self._powerState === true ? ON_MSG : OFF_MSG;
+          msg = new Buffer(msg);
+          client.write(msg, function (err) {
+            cb(err);
+          });
+        } else {
+          cb();
+        }
+      }
+
+      onOff(function(err) {
+        if(err) {
+          client.end();
+          return errorCb(err, self._getStateObj());
+        }
+
+        client.write(self._lightMsg(), function (err) {
+          client.end();
+          errorCb(err, self._getStateObj());
+        });
+      });
+    });
   });
 }
 
@@ -88,7 +132,7 @@ IwyMaster.prototype._receiveState = function(data) {
   if(data[6] === 0 && data[7] === 0 && data[8] === 0) {
     this._mode = WHITE;
     // cast it in a scale between 0 and 100
-    this._brightness = (data[9] / 255) * 100;
+    this._brightness = Math.round((data[9] / 255) * 100, 0);
   }
   else {
     this._mode = COLOR;
@@ -98,85 +142,79 @@ IwyMaster.prototype._receiveState = function(data) {
   this.emit('stateUpdated');
 }
 
-/*
-  public methods
-*/
+IwyMaster.prototype._connect = function(cb) {
+  var self = this,
+    isCbExecuted = false;
 
-IwyMaster.prototype.connect = function(host, port, callback) {
-  if (arguments.length === 1) {
-    port = DEFAULT_PORT;
-  }
+  var client = new net.Socket();
 
-  if (arguments.length === 2) {
-    if (typeof arguments[1] === 'function') {
-      callback = port;
-      port = DEFAULT_PORT;
+  var timeoutId = setTimeout(function() {
+    var err = new Error('connection timeout');
+    client.destroy();
+
+    if(!isCbExecuted) {
+      cb(err);
+    } else {
+      self.emit('connTimeout', err);
     }
-  }
+  }, 2000);
 
-  client = new net.Socket();
-  this._tcpClient = client;
-
-  var self = this;
-
-  client.on('error', function(error) {
-    self.emit('error', error)
+  client.on('close', function() {
+    clearTimeout(timeoutId);
   });
 
-  // reconnect automatically
-  client.on('close', function() {
-    client.connect(port, host);
+  client.on('error', function(error) {
+    client.destroy();
+    isCbExecuted = true;
+    cb(error);
   });
 
   // only used to get the current state of the device
   client.on('data', this._receiveState.bind(this));
 
-  client.connect(port, host, function(err) {
-    if(typeof callback === 'function') callback(err);
+  client.connect(this._port, this._host, function(err) {
+    isCbExecuted = true;
+    cb(err, client);
   });
 }
 
-IwyMaster.prototype.switchOn = function(callback) {
-  var self = this;
+/*
+  public methods
+*/
 
-  this._requestState(function() {
-    self._powerState = true;
-    self._send(ON_MSG, function() {
-      self._send(self._lightMsg(), callback);
-    });
-  });
+
+IwyMaster.prototype.switchOn = function(callback) {
+  var overwrite = function() {
+    this._powerState = true;
+  }
+
+  this._send(overwrite.bind(this), callback);
 }
 
 IwyMaster.prototype.switchOff = function(callback) {
-  var self = this;
+  var overwrite = function() {
+    this._powerState = false;
+  }
 
-  this._requestState(function() {
-    self._powerState = false;
-    self._send(OFF_MSG, callback);
-  });
+  this._send(overwrite.bind(this), callback);
 }
 
 IwyMaster.prototype.getState = function(callback) {
-  var self = this;
+  var overwrite = function() {}
 
-  this._requestState(function() {
-    callback(null, self._getStateObj());
-  });
+  this._send(overwrite.bind(this), callback);
 }
 
 IwyMaster.prototype.setWhite = function(callback) {
-  var self = this;
+  var overwrite = function() {
+    this._mode = WHITE;
+    this._color.rgb(0, 0, 0);
+  }
 
-  this._requestState(function() {
-    self._mode = WHITE;
-    self._color.rgb(0, 0, 0);
-    self._send(self._lightMsg(), callback);
-  });
+  this._send(overwrite.bind(this), callback);
 }
 
 IwyMaster.prototype.setColor = function(red, green, blue, callback) {
-  var self = this;
-
   if(!arguments.hasOwnProperty('2') || typeof(arguments['2']) != 'number') {
     throw new Error('worng arguments');
   }
@@ -186,28 +224,31 @@ IwyMaster.prototype.setColor = function(red, green, blue, callback) {
       throw new Error('value must be between 0 and 255!');
     }
   }
-  this._requestState(function() {
-    self._mode = COLOR;
-    self._color.rgb(red, green, blue);
-    self._send(self._lightMsg(), callback);
-  });
+
+  var overwrite = function() {
+    this._mode = COLOR;
+    this._color.rgb(red, green, blue);
+  }
+
+  this._send(overwrite.bind(this), callback);
 }
 
 IwyMaster.prototype.setBrightness = function(brightness, callback) {
-  var self = this;
-
   if(brightness < 0 || brightness > 100) {
     throw new Error('brightness must be a value between 0 and 100!');
   }
-  this._requestState(function() {
-    self._brightness = brightness;
-    if(self._mode === COLOR) {
-      hsl = self._color.hsl();
+
+  var overwrite = function() {
+    this._brightness = brightness;
+
+    if(this._mode === COLOR) {
+      hsl = this._color.hsl();
       hsl.l = brightness;
-      this._color = self._color.hsl(hsl);
+      this._color = this._color.hsl(hsl);
     }
-    self._send(self._lightMsg(), callback);
-  });
+  }
+
+  this._send(overwrite.bind(this), callback);
 }
 
 module.exports = IwyMaster;

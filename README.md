@@ -15,16 +15,14 @@ This node module can be used to control the light device from any computing unit
 
 [Here](examples/on_off.js) you can find a 'Hello Word' example.
 
-## Import and connect
+## Import and instantiate
 ```
 IwyMaster = require('iwy_master');
 
-iwy = new IwyMaster();
+iwy = new IwyMaster(HOST, [PORT]);
 
-iwy.connect(HOST, [PORT], [CALLBACK])
 ```
-You should know the IP of your light device, if not use an IP scanner and figure it out. The port and callbak are optional. If you dont set a port it will take the default one (5577), which should be fine for almost every case.
-Use the callback to be sure that the connection is established.
+You should know the IP of your light device, if not use an IP scanner and figure it out. The port and callbak are optional. If you don`t set a port it will take the default one (5577), which should be fine for almost every case.
 
 ## Commands
 All commands can be called with an optional. This callback will yield an possible error and the device state after the change. E.g:

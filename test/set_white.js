@@ -9,7 +9,9 @@ describe('#setWhite', function() {
     socketStub = null,
     socketConnectStub = null,
     socketEmitterStub = null,
-    socketWriteStub = null;
+    socketWriteStub = null,
+    socketEndStub = null,
+    hostAddr = '127.0.0.1';
 
   var STATE_REQ_MSG = [0xef, 0x01, 0x77];
   var DEVICE_RESPONSE_WHITE_MODE = new Buffer([0x66, 0x14, 0x23, 0x41, 0x21, 0x16, 0x00, 0x00, 0x00, 0xFF, 0x01, 0x99]),
@@ -18,19 +20,23 @@ describe('#setWhite', function() {
 
 
   beforeEach(function() {
-    iwyMaster = new IwyMaster();
+    iwyMaster = new IwyMaster(hostAddr);
+    // assume the device is switched on
+    iwyMaster._powerState = true;
 
     socketStub = sinon.stub(net, 'Socket');
-    socketConnectStub = sinon.stub()
-    socketEmitterStub = sinon.stub()
-    socketWriteStub = sinon.stub()
+    socketConnectStub = sinon.stub().yields(null);
+    socketEmitterStub = sinon.stub();
+    socketEndStub = sinon.stub();
+    socketWriteStub = sinon.stub().yields(null);
+
 
     socketStub.returns({
       connect:  socketConnectStub,
       on: socketEmitterStub,
-      write: socketWriteStub
+      write: socketWriteStub,
+      end: socketEndStub
     });
-    iwyMaster.connect();
   });
 
   afterEach(function() {
@@ -46,7 +52,6 @@ describe('#setWhite', function() {
     socketWriteStub.secondCall.args[0].toJSON()[5].should.equal(0x0F);
   });
   it('should send a command to switch the light device into white mode and execute the optional callback', function(done) {
-    socketWriteStub.yields(null);
 
     iwyMaster.setWhite(function(err, state) {
       socketWriteStub.firstCall.args[0].toJSON().should.eql(STATE_REQ_MSG);
@@ -63,7 +68,6 @@ describe('#setWhite', function() {
     iwyMaster._receiveState(DEVICE_RESPONSE_COLOR_MODE);
   });
   it('should adapt the current brightness', function(done) {
-    socketWriteStub.yields(null);
 
     iwyMaster.setWhite(function(err, state) {
       state.should.have.property('brightness', 80);

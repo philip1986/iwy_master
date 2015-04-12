@@ -9,25 +9,30 @@ describe('#setColor', function() {
     socketStub = null,
     socketConnectStub = null,
     socketEmitterStub = null,
-    socketWriteStub = null;
+    socketWriteStub = null,
+    socketEndStub = null,
+    hostAddr = '127.0.0.1';
 
   var STATE_REQ_MSG = [0xef, 0x01, 0x77];
   var DEVICE_RESPONSE = new Buffer([0x66, 0x14, 0x23, 0x41, 0x21, 0x16, 0x00, 0x00, 0x00, 0xFF, 0x01, 0x99]);
 
   beforeEach(function() {
-    iwyMaster = new IwyMaster();
+    iwyMaster = new IwyMaster(hostAddr);
+    // assume the device is switched on
+    iwyMaster._powerState = true;
 
     socketStub = sinon.stub(net, 'Socket');
-    socketConnectStub = sinon.stub()
-    socketEmitterStub = sinon.stub()
-    socketWriteStub = sinon.stub()
+    socketConnectStub = sinon.stub().yields(null);
+    socketEmitterStub = sinon.stub();
+    socketEndStub = sinon.stub();
+    socketWriteStub = sinon.stub().yields(null);
 
     socketStub.returns({
       connect:  socketConnectStub,
       on: socketEmitterStub,
-      write: socketWriteStub
+      write: socketWriteStub,
+      end: socketEndStub
     });
-    iwyMaster.connect();
   });
 
   afterEach(function() {
@@ -70,8 +75,6 @@ describe('#setColor', function() {
   });
 
   it('should send a command with the given color and execute the optional callback', function(done) {
-    socketWriteStub.yields(null);
-
     iwyMaster.setColor(50, 51, 52, function(err, state) {
       socketWriteStub.firstCall.args[0].toJSON().should.eql(STATE_REQ_MSG);
       socketWriteStub.secondCall.args[0].toJSON().slice(1,4).should.eql([50, 51, 52]);

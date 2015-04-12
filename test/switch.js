@@ -9,7 +9,9 @@ describe('#switch(On|Off)', function() {
     socketStub = null,
     socketConnectStub = null,
     socketEmitterStub = null,
-    socketWriteStub = null;
+    socketWriteStub = null,
+    socketEndStub = null,
+    hostAddr = '127.0.0.1';
 
   var ON_MSG = [0xcc, 0x23, 0x33],
     OFF_MSG = [0xcc, 0x24, 0x33],
@@ -18,19 +20,20 @@ describe('#switch(On|Off)', function() {
   var DEVICE_RESPONSE = new Buffer([0x66, 0x14, 0x23, 0x41, 0x21, 0x16, 0x00, 0x00, 0x00, 0xFF, 0x01, 0x99]);
 
   beforeEach(function() {
-    iwyMaster = new IwyMaster();
+    iwyMaster = new IwyMaster(hostAddr);
 
     socketStub = sinon.stub(net, 'Socket');
-    socketConnectStub = sinon.stub()
-    socketEmitterStub = sinon.stub()
-    socketWriteStub = sinon.stub()
+    socketConnectStub = sinon.stub().yields(null);
+    socketEmitterStub = sinon.stub();
+    socketEndStub = sinon.stub();
+    socketWriteStub = sinon.stub().yields(null);
 
     socketStub.returns({
       connect:  socketConnectStub,
       on: socketEmitterStub,
-      write: socketWriteStub
+      write: socketWriteStub,
+      end: socketEndStub
     });
-    iwyMaster.connect();
   });
 
   afterEach(function() {
@@ -43,13 +46,9 @@ describe('#switch(On|Off)', function() {
 
     socketWriteStub.firstCall.args[0].toJSON().should.eql(STATE_REQ_MSG);
     socketWriteStub.secondCall.args[0].toJSON().should.eql(ON_MSG);
-
-
   });
 
   it('should send a "ON" message to light device and execute the optional callback', function(done) {
-    socketWriteStub.yields(null);
-
     iwyMaster.switchOn(function(err, state) {
       socketWriteStub.firstCall.args[0].toJSON().should.eql(STATE_REQ_MSG);
       socketWriteStub.secondCall.args[0].toJSON().should.eql(ON_MSG);
@@ -73,8 +72,6 @@ describe('#switch(On|Off)', function() {
   });
 
   it('should send a "OFF" message to light device and execute the optional callback', function(done) {
-    socketWriteStub.yields(null);
-
     iwyMaster.switchOff(function(err, state) {
       socketWriteStub.firstCall.args[0].toJSON().should.eql(STATE_REQ_MSG);
       socketWriteStub.secondCall.args[0].toJSON().should.eql(OFF_MSG);
