@@ -7,28 +7,17 @@
 IwyMaster = require('../../iwy_master');
 
 // here you should set the network address of your iwy light device
-// HOST = 'xxx.xxx.xxx.xxx'
-HOST = '192.168.178.55'
-
+HOST = 'xxx.xxx.xxx.xxx'
 
 light = new IwyMaster(HOST);
 
-light.on('error', function() {
-  console.log('fuck');
+light.on('error', function(err) {
+  console.log(err);
 })
 
-// light.setBrightness(40, console.log);
 
 light.switchOn();
-
-// light.switchOn(function(err){
-//   console.log('hier', err);
-//   light.setColor(0,255,0, function(err, state) {
-//     console.log('hier2', err);
-//     light.setBrightness(70, console.log);
-//   });
-// });
-
+light.setColor(0,255,0);
 
 setInterval(function (){
   light.getState(function(err, state){
