@@ -7,6 +7,11 @@ Color = require('color');
   constants
 */
 
+var DEVICES = {
+  IWY_MASTER: 'iwy-master',
+  WIFI370: 'wifi370'
+}
+
 var DEFAULT_PORT = 5577,
   WHITE = 'WHITE',
   COLOR = 'COLOR';
@@ -22,13 +27,19 @@ var ON_VALUE = 0x23,
   constructor
 */
 
-function IwyMaster(host, port) {
+function IwyMaster(host, port, device) {
   if (host === null || host === undefined) {
    throw new Error('host address requiered');
   }
 
+  if(typeof port === 'string') {
+    device = port;
+    port = null;
+  }
+
   this._host = host;
   this._port = port || DEFAULT_PORT;
+  this._device = device || DEVICES.IWY_MASTER;
 
   this._powerState = null;
   this._mode = null;
@@ -47,15 +58,25 @@ util.inherits(IwyMaster, EventEmitter);
 */
 
 IwyMaster.prototype._lightMsg = function() {
-  return new Buffer([
-    0x56,
-    this._color.rgb().r,
-    this._color.rgb().g,
-    this._color.rgb().b,
-    Math.round(this._brightness * 2.55, 0),
-    MODE[this._mode],
-    0xAA
-  ]);
+  if(this._device === DEVICES.WIFI370){
+    return new Buffer([
+      0x56,
+      this._color.rgb().r,
+      this._color.rgb().g,
+      this._color.rgb().b,
+      0xAA
+    ]);
+  } else {
+    return new Buffer([
+      0x56,
+      this._color.rgb().r,
+      this._color.rgb().g,
+      this._color.rgb().b,
+      Math.round(this._brightness * 2.55, 0),
+      MODE[this._mode],
+      0xAA
+    ]);
+  }
 }
 
 IwyMaster.prototype._requestState = function(client, cb) {
