@@ -7,10 +7,6 @@ Color = require('color');
   constants
 */
 
-var DEVICES = {
-  IWY_MASTER: 'iwy-master',
-  WIFI370: 'wifi370'
-}
 
 var DEFAULT_PORT = 5577,
   WHITE = 'WHITE',
@@ -39,7 +35,7 @@ function IwyMaster(host, port, device) {
 
   this._host = host;
   this._port = port || DEFAULT_PORT;
-  this._device = device || DEVICES.IWY_MASTER;
+  this._device = device || IwyMaster.DEVICES.IWY_MASTER;
 
   this._powerState = null;
   this._mode = null;
@@ -54,11 +50,21 @@ function IwyMaster(host, port, device) {
 util.inherits(IwyMaster, EventEmitter);
 
 /*
+  class variables
+*/
+
+
+IwyMaster.DEVICES = {
+  IWY_MASTER: 'iwy-master',
+  WIFI370: 'wifi370'
+}
+
+/*
   private methods
 */
 
 IwyMaster.prototype._lightMsg = function() {
-  if(this._device === DEVICES.WIFI370){
+  if(this._device === IwyMaster.DEVICES.WIFI370){
     return new Buffer([
       0x56,
       this._color.rgb().r,
