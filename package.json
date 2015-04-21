@@ -1,6 +1,6 @@
 {
   "name": "iwy_master",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Controls IWY Light Master via TCP scocket",
   "main": "index.js",
   "scripts": {
