@@ -60,7 +60,7 @@ describe('#setWhite', function() {
       state.should.have.property('power', true);
       state.should.have.property('mode', 'WHITE');
       state.should.have.property('brightness', 100);
-      state.should.have.property('color', {r: 0, g: 0, b: 0});
+      state.should.have.property('color', {r: 255, g: 255, b: 255});
 
       done();
     });
