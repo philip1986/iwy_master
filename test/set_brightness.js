@@ -13,7 +13,7 @@ describe('#setBrightness', function() {
     socketEndStub = null,
     hostAddr = '127.0.0.1';
 
-  var STATE_REQ_MSG = [0xef, 0x01, 0x77];
+  var STATE_REQ_MSG = new Buffer([0xef, 0x01, 0x77]);
   var DEVICE_RESPONSE_WHITE_MODE = new Buffer([0x66, 0x14, 0x23, 0x41, 0x21, 0x16, 0x00, 0x00, 0x00, 0xFF, 0x01, 0x99]),
     DEVICE_RESPONSE_COLOR_MODE = new Buffer([0x66, 0x14, 0x23, 0x41, 0x21, 0x16, 0xFF, 0xFF, 0xFF, 0x00, 0x01, 0x99]);
 
@@ -55,15 +55,15 @@ describe('#setBrightness', function() {
 
       iwyMaster._receiveState(DEVICE_RESPONSE_WHITE_MODE);
 
-      socketWriteStub.firstCall.args[0].toJSON().should.eql(STATE_REQ_MSG);
-      socketWriteStub.secondCall.args[0].toJSON()[4].should.equal(0x7F);
+      socketWriteStub.firstCall.args[0].should.eql(STATE_REQ_MSG);
+      socketWriteStub.secondCall.args[0][4].should.equal(0x7F);
     });
 
     it('should send a command with the given color and execute the optional callback', function(done) {
       iwyMaster.setBrightness(50, function(err, state) {
 
-        socketWriteStub.firstCall.args[0].toJSON().should.eql(STATE_REQ_MSG);
-        socketWriteStub.secondCall.args[0].toJSON()[4].should.equal(0x7F);
+        socketWriteStub.firstCall.args[0].should.eql(STATE_REQ_MSG);
+        socketWriteStub.secondCall.args[0][4].should.equal(0x7F);
 
         state.should.have.property('power', true);
         state.should.have.property('mode', 'WHITE');
@@ -81,16 +81,16 @@ describe('#setBrightness', function() {
 
       iwyMaster._receiveState(DEVICE_RESPONSE_COLOR_MODE);
 
-      socketWriteStub.firstCall.args[0].toJSON().should.eql(STATE_REQ_MSG);
-      socketWriteStub.secondCall.args[0].toJSON().slice(1,4).should.eql([128, 128, 128]);
+      socketWriteStub.firstCall.args[0].should.eql(STATE_REQ_MSG);
+      socketWriteStub.secondCall.args[0].slice(1,4).should.eql(new Buffer([128, 128, 128]));
     });
 
     it('should send a command with the given color and execute the optional callback', function(done) {
       socketWriteStub.yields(null);
 
       iwyMaster.setBrightness(50, function(err, state) {
-        socketWriteStub.firstCall.args[0].toJSON().should.eql(STATE_REQ_MSG);
-        socketWriteStub.secondCall.args[0].toJSON()[4].should.equal(0x7F);
+        socketWriteStub.firstCall.args[0].should.eql(STATE_REQ_MSG);
+        socketWriteStub.secondCall.args[0][4].should.equal(0x7F);
 
         state.should.have.property('power', true);
         state.should.have.property('mode', 'COLOR');

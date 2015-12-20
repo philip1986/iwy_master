@@ -13,7 +13,7 @@ describe('#setWhite', function() {
     socketEndStub = null,
     hostAddr = '127.0.0.1';
 
-  var STATE_REQ_MSG = [0xef, 0x01, 0x77];
+  var STATE_REQ_MSG = new Buffer([0xef, 0x01, 0x77]);
   var DEVICE_RESPONSE_WHITE_MODE = new Buffer([0x66, 0x14, 0x23, 0x41, 0x21, 0x16, 0x00, 0x00, 0x00, 0xFF, 0x01, 0x99]),
     DEVICE_RESPONSE_COLOR_MODE = new Buffer([0x66, 0x14, 0x23, 0x41, 0x21, 0x16, 0xFF, 0xFF, 0xFF, 0x00, 0x01, 0x99]),
     DEVICE_RESPONSE_COLOR_MODE_DARK = new Buffer([0x66, 0x14, 0x23, 0x41, 0x21, 0x16, 0xcc, 0xcc, 0xcc, 0x00, 0x01, 0x99]);
@@ -48,14 +48,14 @@ describe('#setWhite', function() {
 
     iwyMaster._receiveState(DEVICE_RESPONSE_COLOR_MODE);
 
-    socketWriteStub.firstCall.args[0].toJSON().should.eql(STATE_REQ_MSG);
-    socketWriteStub.secondCall.args[0].toJSON()[5].should.equal(0x0F);
+    socketWriteStub.firstCall.args[0].should.eql(STATE_REQ_MSG);
+    socketWriteStub.secondCall.args[0][5].should.equal(0x0F);
   });
   it('should send a command to switch the light device into white mode and execute the optional callback', function(done) {
 
     iwyMaster.setWhite(function(err, state) {
-      socketWriteStub.firstCall.args[0].toJSON().should.eql(STATE_REQ_MSG);
-      socketWriteStub.secondCall.args[0].toJSON()[5].should.equal(0x0F);
+      socketWriteStub.firstCall.args[0].should.eql(STATE_REQ_MSG);
+      socketWriteStub.secondCall.args[0][5].should.equal(0x0F);
 
       state.should.have.property('power', true);
       state.should.have.property('mode', 'WHITE');
@@ -76,6 +76,4 @@ describe('#setWhite', function() {
 
     iwyMaster._receiveState(DEVICE_RESPONSE_COLOR_MODE_DARK);
   });
-
-
 });
