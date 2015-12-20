@@ -27,11 +27,11 @@
   },
   "homepage": "https://github.com/philip1986/iwy_master",
   "dependencies": {
-    "color": "^0.7.3"
+    "color": "^0.10.1"
   },
   "devDependencies": {
-    "mocha": "^2.1.0",
-    "should": "^5.0.1",
-    "sinon": "^1.12.2"
+    "mocha": "^2.3.4",
+    "should": "^8.0.2",
+    "sinon": "^1.17.2"
   }
 }
