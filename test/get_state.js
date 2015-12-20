@@ -40,10 +40,10 @@ describe('#getState', function() {
   });
 
   it('should request the current state of the light device', function(done) {
-    STATE_REQ_MSG = [0xef, 0x01, 0x77];
+    var STATE_REQ_MSG = new Buffer([0xef, 0x01, 0x77]);
 
     iwyMaster.getState(function() {
-      socketWriteStub.firstCall.args[0].toJSON().should.eql(STATE_REQ_MSG);
+      socketWriteStub.firstCall.args[0].should.eql(STATE_REQ_MSG);
 
       done();
     });
